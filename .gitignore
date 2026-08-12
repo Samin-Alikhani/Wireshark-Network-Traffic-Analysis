@@ -1,0 +1,4 @@
+*.pcap
+*.pcapng
+*-raw.png
+.DS_Store
