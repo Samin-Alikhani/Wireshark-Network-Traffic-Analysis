@@ -1,12 +1,17 @@
 # Wireshark Display Filters
 
+These are the display filters I used while working through the capture.
+They helped me focus on one protocol or connection at a time. A display filter
+changes which packets Wireshark shows; it does not remove packets from the
+capture.
+
 ## DNS
 
 ```text
 dns && dns.qry.name == "example.com"
 ```
 
-Isolates DNS packets containing a query for `example.com`.
+I used this filter to find the DNS query and response for `example.com`.
 
 ## ICMP
 
@@ -14,50 +19,54 @@ Isolates DNS packets containing a query for `example.com`.
 icmp && ip.addr == 1.1.1.1
 ```
 
-Shows ICMP traffic in either direction involving `1.1.1.1`.
+This showed the ping requests to `1.1.1.1` and the replies coming back.
 
-## TCP stream
+## TCP Stream
 
 ```text
 tcp.stream == 6
 ```
 
-Shows every packet Wireshark assigned to the controlled TCP conversation.
-Stream indexes are capture-local values and can differ in another capture.
+This let me follow the HTTPS connection without the other traffic in the
+capture. My connection was stream 6; the number can be different in another
+capture.
 
 ```text
 tcp.flags.syn == 1 && tcp.flags.ack == 0
 ```
 
-Shows initial SYN packets while excluding SYN-ACK packets.
+I used this to find the SYN packets that start TCP connections. The ACK check
+keeps SYN-ACK replies out of the results.
 
-## TLS handshake
+## TLS Handshake
 
 ```text
 tcp.stream == 6 && tls.handshake.type == 1
 ```
 
-Shows the TLS Client Hello in the controlled TCP stream.
+This showed the Client Hello for the connection I was studying.
 
 ```text
 tcp.stream == 6 && tls.handshake.type == 2
 ```
 
-Shows the TLS Server Hello in the controlled TCP stream.
+Changing the handshake type to `2` showed the Server Hello.
 
-## TLS application data
+## TLS Application Data
 
 ```text
 tcp.stream == 6 && tls.app_data
 ```
 
-Shows encrypted TLS application records in the controlled stream.
+I used this filter to find TLS Application Data in the same connection.
 
-## TCP termination
+## Connection Closure
 
 ```text
 tcp.stream == 6 && (tcp.flags.fin == 1 || tcp.flags.reset == 1)
 ```
 
-Shows FIN or RST packets used to close or abruptly terminate the connection.
-
+This helped me check how the connection ended. FIN packets are part of a
+normal shutdown, while RST packets indicate a reset. The filter does not show
+packets that contain only an ACK. To follow the complete closing exchange,
+I need to look at the full stream as well.
